@@ -8,7 +8,10 @@ const Express = require('express');
 const BodyParser = require('body-parser');
 const Morgan = require('morgan');
 
-const main = async function({ svc_root, api_key }) {
+// add timestamps to console.log
+require('console-stamp')(console);
+
+const main = async function({ svc_root, port, api_key }) {
 	let business = await Business();
 
 	let app = Express();
@@ -38,9 +41,12 @@ const main = async function({ svc_root, api_key }) {
 		})
 	);
 
+	app.listen(port, () => { console.log("Service listening on", port)});
+
 };
 
 main({
 	api_key: process.env.API_KEY,
-	uri_root: process.env.SVC_ROOT
+	uri_root: process.env.SVC_ROOT,
+	port: (process.env.PORT || 5001)
 });
