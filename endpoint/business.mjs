@@ -14,7 +14,8 @@ export default async function() {
 			// FIXME: validate format
 			let asset = assets[asset_role];
 			let mime_type = asset.mime_type;
-			let filename = `${id}-${asset.role}`;
+			let original_filename = asset.filename;
+			let filename = `${id}-${asset.role}-${original_filename}`;
 			await db.insert_asset({	token_id, asset_role, mime_type, filename })
 			let content_b64 = asset.content_b64;
 			await filestor.write_b64_to_file(filename, content_b64);
