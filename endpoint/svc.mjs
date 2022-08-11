@@ -33,15 +33,35 @@ const main = async function({ svc_root, port, api_key }) {
 		});
 	}
 
+	let endpoint_root = svc_root || ""
+
 	// mint request endpoint
 	app.post(
-		`${svc_root}/`,
+		`${endpoint_root}/`,
 		ash(async (req, res) => {
-			await business.new_mint_request(req.body);
+			console.log(req.body);
+			let response = await business.new_mint_request(req.body);
+			res.json(response);
+		})
+	);
+	
+	app.get(
+		`${endpoint_root}/token_status`,
+		ash(async (req, res) => {
+			let response = await business.check_token_status(req.query);
+			res.json(response);
 		})
 	);
 
-	app.listen(port, () => { console.log("Service listening on", port)});
+	app.get(
+		`${endpoint_root}/health`,
+		ash(async (req, res) => {
+			let response = await business.check_system_health();
+			res.json(response);
+		})
+	);
+
+	app.listen(port, () => { console.log(`Service listening on ${port}, at ${endpoint_root}/`)});
 
 };
 

@@ -5,26 +5,54 @@ export default async function() {
 	let db = Db();
 	let filestor = Filestor();
 
-	const new_mint_request = async function({ mint_to, token_details, assets }) {
-		//FIXME: validate request format
+	const new_mint_request = async function({ token_id, mint_to, token_details, image_asset }) {
+		//FIXME: validate request json
+		//FIXME: transactionalize + manage errors
 
-		let token_id = await db.insert_token({ mint_to, token_details });
+		let request_id = await db.insert_token({ token_id, mint_to, token_details });
+		console.log(request_id);
 
-		for (let asset_role in ['artifact', 'display', 'thumbnail']) {
-			// FIXME: validate format
-			let asset = assets[asset_role];
-			let mime_type = asset.mime_type;
-			let original_filename = asset.filename;
-			let filename = `${id}-${asset.role}-${original_filename}`;
-			await db.insert_asset({	token_id, asset_role, mime_type, filename })
-			let content_b64 = asset.content_b64;
-			await filestor.write_b64_to_file(filename, content_b64);
-		}
+		let filename = `${request_id}-${image_asset.filename}`;
+		await db.insert_asset({
+			request_id,
+			asset_role: 'artwork',
+			mime_type: image_asset.mime_type,
+			filename
+		});
 
-		return true;
+		await filestor.write_b64_to_file({
+			filename,
+			b64_data: image_asset.b64_data
+		});
+
+		return {
+			filename,
+			request_id
+		};
+	}
+
+	const check_token_status = async function({ request_id, token_id }) {
+		//FIXME
+
+		return {
+			dummy: true,
+			processed: true,
+			minted: false
+		};
+	}
+
+	const check_system_health = async function() {
+		//FIXME
+
+		return {
+			dummy: true,
+			up: true
+		};
 	}
 
 	return {
-		new_mint_request
+		new_mint_request,
+		check_token_status,
+		check_system_health
 	}
 }
