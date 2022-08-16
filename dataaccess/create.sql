@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS peppermintery;
 
 DO $$ BEGIN
    CREATE TYPE peppermintery.token_state AS ENUM
-     ('pending', 'processing', 'submitted', 'rejected');
+     ('pending', 'processing', 'submitted', 'rejected', 'canary');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS peppermintery.requests
 (
     id SERIAL,
 	token_id INTEGER NULL,
-    recipient_address character(36) COLLATE pg_catalog."default" NOT NULL,
-    details jsonb NOT NULL,
+    recipient_address character(36) COLLATE pg_catalog."default" NULL,
+    details jsonb NULL,
 	state peppermintery.token_state NOT NULL DEFAULT 'pending'::peppermintery.token_state,
 	peppermint_id INTEGER NULL,
 	submitted_at timestamp with time zone NOT NULL DEFAULT now(),

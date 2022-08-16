@@ -1,5 +1,6 @@
 import Db from '../dataaccess/db.mjs'
 import Filestor from '../dataaccess/filestor.mjs'
+import { ValidationError } from './errors.mjs';
 
 export default async function() {
 	let db = Db();
@@ -9,7 +10,7 @@ export default async function() {
 		//FIXME: validate request json
 		//FIXME: transactionalize + manage errors
 
-		let request_id = await db.insert_token({ token_id, mint_to, token_details });
+		let request_id = await db.insert_request({ token_id, mint_to, token_details });
 		console.log(request_id);
 
 		let filename = `${request_id}-${image_asset.filename}`;
@@ -31,12 +32,25 @@ export default async function() {
 		};
 	}
 
-	const check_token_status = async function({ request_id, token_id }) {
-		//FIXME
+	const recent_requests = function({ limit }) {
+		return db.get_requests({ limit });
+	}
+
+	const check_token_status = async function({ request_id, token_id }) { 
+		let request = null;
+		if (request_id && token_id) {
+			throw new ValidationError('Ambiguous query. Specify either request_id or token_id.')
+		} else if (token_id) {
+			request = await db.get_request_by_token_id({ token_id });
+		} else if (request_id) {
+			request = await db.get_request_by_request_id({ request_id });
+		} else {
+			throw new ValidationError('Specify either request_id or token_id in query string.')
+		}
 
 		return {
 			dummy: true,
-			processed: true,
+			request,
 			minted: false
 		};
 	}
@@ -52,6 +66,7 @@ export default async function() {
 
 	return {
 		new_mint_request,
+		recent_requests,
 		check_token_status,
 		check_system_health
 	}

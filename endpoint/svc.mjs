@@ -39,11 +39,18 @@ const main = async function({ svc_root, port, api_key }) {
 	app.post(
 		`${endpoint_root}/`,
 		ash(async (req, res) => {
-			console.log(req.body);
 			let response = await business.new_mint_request(req.body);
 			res.json(response);
 		})
 	);
+
+	app.get(
+		`${endpoint_root}/`,
+		ash(async (req, res) => {
+			let response = await business.recent_requests(req.body);
+			res.json(response);
+		})
+	)
 	
 	app.get(
 		`${endpoint_root}/token_status`,
