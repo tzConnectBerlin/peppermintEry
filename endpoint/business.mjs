@@ -8,23 +8,40 @@ export default async function() {
 
 	const new_mint_request = async function({ token_id, mint_to, token_details, image_asset }) {
 		//FIXME: validate request json
-		//FIXME: transactionalize + manage errors
+		
+		let tx = false;
+		let conn = {};
+		try {
+			conn = await db.pool.getConnection();
+			await conn.beginTransaction();
+			tx = true;
 
-		let request_id = await db.insert_request({ token_id, mint_to, token_details });
-		console.log(request_id);
+			let request_id = await db.insert_request({ token_id, mint_to, token_details });
+			console.log(request_id);
 
-		let filename = `${request_id}-${image_asset.filename}`;
-		await db.insert_asset({
-			request_id,
-			asset_role: 'artwork',
-			mime_type: image_asset.mime_type,
-			filename
-		});
+			let filename = `${request_id}-${image_asset.filename}`;
+			await db.insert_asset({
+				request_id,
+				asset_role: 'artwork',
+				mime_type: image_asset.mime_type,
+				filename
+			});
 
-		await filestor.write_b64_to_file({
-			filename,
-			b64_data: image_asset.b64_data
-		});
+			await filestor.write_b64_to_file({
+				filename,
+				b64_data: image_asset.b64_data
+			});
+
+			conn.commit();
+			tx = false;
+		} finally {
+            if (tx) {
+                await conn.rollback();
+            }
+            if (conn.release) {
+                conn.release();
+            }
+        }
 
 		return {
 			filename,
