@@ -2,9 +2,9 @@ import Db from '../dataaccess/db.mjs'
 import Filestor from '../dataaccess/filestor.mjs'
 import { ValidationError } from './errors.mjs';
 
-export default async function() {
-	let db = Db();
-	let filestor = Filestor();
+export default async function(config) {
+	let db = Db(config.database);
+	let filestor = Filestor(config);
 
 	const new_mint_request = async function({ token_id, mint_to, token_details, image_asset }) {
 		//FIXME: validate request json
@@ -12,25 +12,25 @@ export default async function() {
 		let tx = false;
 		let conn = {};
 		try {
-			conn = await db.pool.getConnection();
+			conn = await db.get_connection();
 			await conn.beginTransaction();
 			tx = true;
 
-			let request_id = await db.insert_request({ token_id, mint_to, token_details });
-			console.log(request_id);
+			let request_id = await db.insert_request({ token_id, mint_to, token_details }, conn);
 
 			let filename = `${request_id}-${image_asset.filename}`;
-			await db.insert_asset({
-				request_id,
-				asset_role: 'artwork',
-				mime_type: image_asset.mime_type,
-				filename
-			});
-
-			await filestor.write_b64_to_file({
-				filename,
-				b64_data: image_asset.b64_data
-			});
+			await Promise.all([
+				db.insert_asset({
+					request_id,
+					asset_role: 'artwork',
+					mime_type: image_asset.mime_type,
+					filename
+				}, conn),
+				filestor.write_b64_to_file({
+					filename,
+					b64_data: image_asset.b64_data
+				})
+			]);
 
 			conn.commit();
 			tx = false;

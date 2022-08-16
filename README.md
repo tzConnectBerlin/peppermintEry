@@ -1,9 +1,11 @@
 # PeppermintEry
 A webservice interface and token crafter companion to Peppermint
 
-## Service endpoints
+## Configuration
 
-The service root is configurable.
+
+
+## Service endpoints
 
 ### Insert new request
 

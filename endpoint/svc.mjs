@@ -11,8 +11,10 @@ const Morgan = require('morgan');
 // add timestamps to console.log
 require('console-stamp')(console);
 
-const main = async function({ svc_root, port, api_key }) {
-	let business = await Business();
+const config = require('../config.json');
+
+const main = async function(config) {
+	let business = await Business(config);
 
 	let app = Express();
 
@@ -22,6 +24,7 @@ const main = async function({ svc_root, port, api_key }) {
 	app.use(Morgan('dev'));
 
 	// API key auth
+	let api_key = config.endpoint.api_key;
 	if (api_key) {
 		app.use((req, res, next) => {
 			let key_header = req.get('API-Key');
@@ -33,7 +36,7 @@ const main = async function({ svc_root, port, api_key }) {
 		});
 	}
 
-	let endpoint_root = svc_root || ""
+	let endpoint_root = config.endpoint.uri_root || ""
 
 	// mint request endpoint
 	app.post(
@@ -68,12 +71,9 @@ const main = async function({ svc_root, port, api_key }) {
 		})
 	);
 
+	let port = config.endpoint.port || 5001;
 	app.listen(port, () => { console.log(`Service listening on ${port}, at ${endpoint_root}/`)});
 
 };
 
-main({
-	api_key: process.env.API_KEY,
-	svc_root: process.env.SVC_ROOT,
-	port: (process.env.PORT || 5001)
-});
+main(config);

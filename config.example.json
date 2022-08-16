@@ -1,0 +1,19 @@
+{
+	"endpoint": {
+		"port": 5005,
+		"uri_root": "",
+		"api_key": null
+	},
+	"database": {
+		"host": "localhost",
+		"port": 5432,
+		"user": "tezos",
+		"password": "tezos",
+		"database": "tezos"
+	},
+	"chain": {
+		"quepasa_contract_name": "nft",
+		"peppermint_handler": "nft",
+		"peppermint_originator": "tz1burnburnburnburnburnburnburjAYjjX"
+	}
+}
