@@ -74,6 +74,6 @@ const main = async function({ svc_root, port, api_key }) {
 
 main({
 	api_key: process.env.API_KEY,
-	uri_root: process.env.SVC_ROOT,
+	svc_root: process.env.SVC_ROOT,
 	port: (process.env.PORT || 5001)
 });
