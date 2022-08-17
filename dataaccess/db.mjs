@@ -71,6 +71,7 @@ export default function(connection) {
 	}
 
 	return {
+		get_connection,
 		insert_request,
 		insert_asset,
 		get_requests,
