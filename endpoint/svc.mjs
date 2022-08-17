@@ -21,7 +21,7 @@ const main = async function(config) {
 	app.use(BodyParser.json());
 
 	// logger
-	app.use(Morgan('dev'));
+	app.use(Morgan('combined'));
 
 	// API key auth
 	let api_key = config.endpoint.api_key;
