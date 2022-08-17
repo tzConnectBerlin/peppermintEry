@@ -13,7 +13,7 @@ export default async function(config) {
 		let conn = {};
 		try {
 			conn = await db.get_connection();
-			await conn.beginTransaction();
+			await db.begin_tx(conn);
 			tx = true;
 
 			let request_id = await db.insert_request({ token_id, mint_to, token_details }, conn);
@@ -32,21 +32,18 @@ export default async function(config) {
 				})
 			]);
 
-			conn.commit();
+			await db.commit_tx(conn);
 			tx = false;
+			
+			return { filename, request_id };
 		} finally {
-            if (tx) {
-                await conn.rollback();
-            }
-            if (conn.release) {
-                conn.release();
-            }
-        }
-
-		return {
-			filename,
-			request_id
-		};
+			if (tx) {
+				await db.rollback_tx(conn);
+			}
+			if (conn.release) {
+				conn.release();
+ 			}
+		}
 	}
 
 	const recent_requests = function({ limit }) {

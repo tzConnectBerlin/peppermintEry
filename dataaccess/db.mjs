@@ -67,11 +67,26 @@ export default function(connection) {
 	};
 
 	const get_connection = function() {
-		return pool.getConnection();
-	}
+		return pool.connect();
+	};
+
+	const begin_tx = function(db) {
+		return db.query('BEGIN');
+	};
+
+	const commit_tx = function(db) {
+		return db.query('COMMIT');
+	};
+
+	const rollback_tx = function(db) {
+		return db.query('ROLLBACK');
+	};
 
 	return {
 		get_connection,
+		begin_tx,
+		commit_tx,
+		rollback_tx,
 		insert_request,
 		insert_asset,
 		get_requests,
