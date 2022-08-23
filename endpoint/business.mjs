@@ -1,6 +1,6 @@
 import Db from '../dataaccess/db.mjs'
 import Filestor from '../dataaccess/filestor.mjs'
-import { ValidationError } from './errors.mjs';
+import { ValidationError } from '../common/errors.mjs';
 
 export default async function(config) {
 	let db = Db(config.database);

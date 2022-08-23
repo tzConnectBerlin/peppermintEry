@@ -2,7 +2,7 @@ CREATE SCHEMA IF NOT EXISTS peppermintery;
 
 DO $$ BEGIN
    CREATE TYPE peppermintery.token_state AS ENUM
-     ('pending', 'processing', 'submitted', 'rejected', 'canary');
+     ('pending', 'processing', 'submitted', 'rejected', 'failed', 'canary');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

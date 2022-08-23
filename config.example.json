@@ -1,4 +1,9 @@
 {
+	"assets": {
+		"assets_folder": "assets",
+		"display_bounding_box": 400,
+		"jpeg_quality": 95
+	},
 	"endpoint": {
 		"port": 5005,
 		"uri_root": "",
@@ -15,5 +20,10 @@
 		"quepasa_contract_name": "nft",
 		"peppermint_handler": "nft",
 		"peppermint_originator": "tz1burnburnburnburnburnburnburjAYjjX"
+	},
+	"pinata": {
+		"api_key": "",
+		"secret_key": "",
+		"asset_name_prefix": "plan9"
 	}
 }

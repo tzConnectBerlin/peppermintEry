@@ -1,5 +1,7 @@
 import ash from 'express-async-handler'
+
 import Business from './business.mjs'
+import ConfLoader from '../common/confloader.mjs'
 
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url);
@@ -11,7 +13,7 @@ const Morgan = require('morgan');
 // add timestamps to console.log
 require('console-stamp')(console);
 
-const config = require('../config.json');
+const config = ConfLoader();
 
 const main = async function(config) {
 	let business = await Business(config);

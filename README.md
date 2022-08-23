@@ -3,7 +3,9 @@ A webservice interface and token crafter companion to Peppermint
 
 ## Configuration
 
+Configuration happens via a single JSON file, for both the service endpoint and the worker process(es). For the possible settings, refer to `config.example.json`.
 
+When loading the configuration, the process looks at the environment variable `PEPPERMINT_PROFILE`. If this variable is not set, the file `config.json` is loaded. If profile is set, the process looks for the file `config_{profile}.json`. This variable is intended to be shared with Peppermint.
 
 ## Service endpoints
 
@@ -18,12 +20,14 @@ Call the minting endpoint, POSTing the following payload format:
 	"token_id": <unique token id>,
 	"mint_to": <Wallet Hash>,
 	"token_details": {
-        "title": "Hello World",
+        "name": "Hello World",
         "description": "the Hello World nft",
+        "tags": [ "<tag>", "<tag>", ... ]
         "attributes": {
-            <stringKey>: <value>,
+            "<stringKey>": "<value>",
             ...
-        }
+        },
+        ...
     },
     "image_asset": {
        	"mime_type": "image/png",
