@@ -7,7 +7,7 @@ export default function(config) {
 
 	const prepare_assets = async function({ asset_filename, display_asset_filename }) {
 		let asset_buffer = await filestor.read_binary_file({ filename: asset_filename });
-		let asset_image = imager.load_image({ buffer: asset_buffer });
+		let asset_image = await imager.load_image({ buffer: asset_buffer });
 
 		// We're shrinking the image for fast display if the original image is larger than the specified display size
 		// FIXME: add logic to convert small _lossless_ (png, tif) images to jpeg for display, to speed up load times
