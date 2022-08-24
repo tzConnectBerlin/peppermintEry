@@ -33,5 +33,6 @@
 				"tz1burnburnburnburnburnburnburjAYjjX"
 			]
 		}
-	}
+	},
+	"polling_delay": 10000
 }
