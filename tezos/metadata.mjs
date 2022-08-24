@@ -22,7 +22,7 @@ export default function(config) {
 			thumbnailUri: displayUri,
 			formats: [
 				{
-					uri: assetUri,
+					uri: artifactUri,
 					mimeType: asset_mimetype
 				}
 			]

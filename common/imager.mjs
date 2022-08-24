@@ -6,7 +6,7 @@ export default function (config) {
 		// this part serves a real purpose here beside logging!
 		// this way we get an error right here if something is wrong with the file
 		let metadata = await image.metadata();
-		console.log(`Loaded '${filename}':\n`, metadata);
+		console.log(`Loaded image for processing:\n`, metadata);
 		return image;
 	};
 

@@ -32,6 +32,7 @@ const main = async function() {
 			if (!asset_info) {
 				throw new Error(`No asset record for request ${mint_request.id}`);
 			}
+			console.log(`Loading asset for mint request ${mint_request.id}:\n`, asset_info);
 
 			let display_asset_filename = `${mint_request.id}-display.jpeg`;
 			let { asset_buffer, display_asset_buffer } = await assets.prepare_assets({ asset_filename: asset_info.filename, display_asset_filename });
@@ -67,7 +68,7 @@ const main = async function() {
 				token_id: mint_request.token_id,
 				token_metadata_hash
 			}, conn);
-			await db.complete_request({ request_id, peppermint_id }, conn);
+			await db.complete_request({ request_id: mint_request.id, peppermint_id }, conn);
 			db.commit_tx(conn);
 			tx = false;
 

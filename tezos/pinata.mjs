@@ -13,6 +13,7 @@ export default function(config) {
 		let pinata_name = prefix_name(filename);
 
 		let stream = Readable.from(buffer);
+		stream.path = pinata_name; // the pinata SDK is a mess, this is required...
 		let result = await pinata.pinFileToIPFS(stream, { pinataMetadata: { name: pinata_name } });
 		console.log(`File ${pinata_name} pinned:\n`, result);
 
@@ -21,8 +22,7 @@ export default function(config) {
 
 	const upload_json = async function ({ data, filename }) {
 		let pinata_name = prefix_name(filename);
-		let json_data = JSON.stringify(data, null, '\t');
-		let result = await pinata.pinJSONToIPFS(json_data, { pinataMetadata: { name: pinata_name } });
+		let result = await pinata.pinJSONToIPFS(data, { pinataMetadata: { name: pinata_name } });
 		console.log(`Json document ${pinata_name} pinned:\n`, result);
 
 		return result.IpfsHash;
