@@ -10,7 +10,7 @@ const db = Db(config.database);
 const meta = Metadata(config.token);
 const assets = Assets(config.assets);
 const pinata = Pinata(config.ipfs);
-const peppermint = Peppermint(config.chaint, db);
+const peppermint = Peppermint(config.chain, db);
 
 const config = ConfLoader();
 

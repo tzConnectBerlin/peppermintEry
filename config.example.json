@@ -1,9 +1,4 @@
 {
-	"assets": {
-		"assets_folder": "assets",
-		"display_bounding_box": 400,
-		"jpeg_quality": 95
-	},
 	"endpoint": {
 		"port": 5005,
 		"uri_root": "",
@@ -25,5 +20,18 @@
 		"api_key": "",
 		"secret_key": "",
 		"asset_name_prefix": "plan9"
+	},
+	"assets": {
+		"assets_folder": "assets",
+		"display_bounding_box": 400,
+		"jpeg_quality": 95
+	},
+	"token": {
+		"symbol": "PLAN9",
+		"collection_info": {
+			"creators": [
+				"tz1burnburnburnburnburnburnburjAYjjX"
+			]
+		}
 	}
 }

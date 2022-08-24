@@ -12,7 +12,7 @@ export default function(config) {
 		let metadata = {
 			...token_info,
 			...config.collection_info,
-			symbol: config.token_symbol,
+			symbol: config.symbol,
 			isTransferable: true,
 			isBooleanAmount: true, // current version is for minting unique 1 of 1 nfts
 			shouldPreferSymbol: false,
