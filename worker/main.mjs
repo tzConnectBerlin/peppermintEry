@@ -6,13 +6,13 @@ import Assets from './assets.mjs'
 import Pinata from '../tezos/pinata.mjs'
 import Peppermint from '../tezos/peppermint.mjs'
 
+const config = ConfLoader();
+
 const db = Db(config.database);
 const meta = Metadata(config.token);
 const assets = Assets(config.assets);
-const pinata = Pinata(config.ipfs);
+const pinata = Pinata(config.pinata);
 const peppermint = Peppermint(config.chain, db);
-
-const config = ConfLoader();
 
 const main = async function() {
 
@@ -92,9 +92,9 @@ const main = async function() {
 		try {
 			let [ result, _ ] = await Promise.all([
 				heartbeat(),
-				new Promise(_ => setTimeout(_, config.pollingDelay))
+				new Promise(_ => setTimeout(_, config.polling_delay))
 			]);
-			signal = result;
+			//signal = result;
 		} catch (err) {
 			console.error("An error has occurred in the main event loop.\n", err);
 			signal = false;

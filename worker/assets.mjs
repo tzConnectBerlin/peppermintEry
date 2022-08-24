@@ -1,5 +1,5 @@
 import Filestor from '../dataaccess/filestor.mjs'
-import Imager from './image.mjs'
+import Imager from '../common/imager.mjs'
 
 export default function(config) {
 	const filestor = Filestor(config);

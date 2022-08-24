@@ -15,7 +15,7 @@ export default function({ assets_folder }) {
 
 	const write_b64_to_file = function({ filename, b64_data }) {
 		let filebuf = Buffer.from(b64_data, 'base64');
-		return write_binary_file({ filename, filebuf });
+		return write_binary_file({ filename, buffer: filebuf });
 	};
 
 
