@@ -4,7 +4,7 @@ import { ValidationError } from '../common/errors.mjs';
 
 export default async function(config) {
 	let db = Db(config.database);
-	let filestor = Filestor(config);
+	let filestor = Filestor(config.assets);
 
 	const new_mint_request = async function({ token_id, mint_to, token_details, image_asset }) {
 		//FIXME: validate request json
