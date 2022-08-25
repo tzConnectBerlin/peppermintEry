@@ -7,8 +7,8 @@ const INSERT_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, recipie
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
 const GET_RECENT_SQL = "SELECT * FROM peppermintery.requests WHERE state <> 'canary' ORDER BY submitted_at DESC LIMIT $1";
 const GET_RECENT_BY_STATE_SQL = "SELECT * FROM peppermintery.requests WHERE state = $1 ORDER BY submitted_at DESC LiMIT $2";
-const GET_REQUEST_BY_REQUEST_ID_SQL = "SELECT * FROM peppermintery.requests LEFT OUTER JOIN peppermint.operations ON operations.id = requests.peppermint_id WHERE id = $1";
-const GET_REQUEST_BY_TOKEN_ID_SQL = "SELECT * FROM peppermintery.requests LEFT OUTER JOIN peppermint.operations ON operations.id = requests.peppermint_id WHERE token_id = $1";
+const GET_REQUEST_BY_REQUEST_ID_SQL = "SELECT * FROM peppermintery.requests WHERE id = $1";
+const GET_REQUEST_BY_TOKEN_ID_SQL = "SELECT * FROM peppermintery.requests WHERE token_id = $1";
 const GET_ASSET_SQL = "SELECT * FROM peppermintery.assets WHERE request_id = $1";
 const GET_PEPPERMINT_OP_SQL = "SELECT * FROM peppermint.operations WHERE id = $1";
 
