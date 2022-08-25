@@ -1,0 +1,11 @@
+{
+	"name": "Demo token collection",
+	"description": "A collection of tokens to demonstrate things ;)",
+	"imageUri": "ipfs://example",
+	"interfaces": [
+		"TZIP-012",
+		"TZIP-016",
+		"TZIP-021"
+	],
+	"homepage": "http://www.example.com/"
+}

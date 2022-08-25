@@ -62,10 +62,32 @@ export default async function(config) {
 			throw new ValidationError('Specify either request_id or token_id in query string.')
 		}
 
+		if (!request) {
+			return {
+				requested: false,
+				processed: false,
+				minted: false
+			};
+		}
+
+		if (!request.peppermint_id) {
+			return {
+				requested: true,
+				processed: false,
+				minted: false,
+				minting_request: request
+			};
+		}		
+		
+		let peppermint_operation = await db.get_peppermint_operation({ peppermint_id: request.peppermint_id });
+		let minted = (peppermint_operation.state === 'confirmed');
+
 		return {
-			dummy: true,
-			request,
-			minted: false
+			requested: true,
+			processed: true,
+			minted,
+			minting_request: request,
+			minting_operation: peppermint_operation
 		};
 	}
 
