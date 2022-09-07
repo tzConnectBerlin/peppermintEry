@@ -20,7 +20,7 @@ const main = async function(config) {
 
 	let app = Express();
 
-	app.use(BodyParser.json());
+	app.use(BodyParser.json({ limit: '50mb' }));
 
 	// logger
 	app.use(Morgan('combined'));

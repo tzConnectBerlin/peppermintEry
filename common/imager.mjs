@@ -19,7 +19,7 @@ export default function (config) {
 	};
 
 	const to_png_buffer = async function({ image }) {
-		return await image.jpeg(config.png_options).toBuffer();
+		return await image.png(config.png_options).toBuffer();
 	}
 
 	const resize_to = async function({ image, bounding_box }) {
