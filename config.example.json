@@ -24,7 +24,14 @@
 	"assets": {
 		"assets_folder": "assets",
 		"display_bounding_box": 400,
-		"jpeg_quality": 95
+		"jpeg_options": {
+			"quality": 98,
+			"mozjpeg": true
+		},
+		"png_options": {
+			"compressionLevel": 9,
+			"progressive": true
+		}
 	},
 	"token": {
 		"symbol": "PLAN9",

@@ -5,7 +5,7 @@ export default function(config) {
 		return;
 	};
 
-	const generate_metadata = function({ token_info, asset_hash, asset_mimetype, display_hash }) {
+	const generate_metadata = function({ token_info, asset_hash, asset_mimetype, display_hash, display_mimetype }) {
 		let artifactUri = `ipfs://${asset_hash}`;
 		let displayUri = `ipfs://${display_hash || asset_hash}`;
 
@@ -30,7 +30,7 @@ export default function(config) {
 		if (display_hash) {
 			metadata.formats.push({
 				uri: displayUri,
-				mimeType: 'image/jpeg' // currently display is always jpeg if there is one
+				mimeType: display_mimetype
 			});
 		}
 

@@ -34,7 +34,7 @@ const main = async function() {
 			}
 			console.log(`Loading asset for mint request ${mint_request.id}:\n`, asset_info);
 
-			let display_asset_filename = `${mint_request.id}-display.jpeg`;
+			let display_asset_filename = `${mint_request.id}-display.png`;
 			let { asset_buffer, display_asset_buffer } = await assets.prepare_assets({ asset_filename: asset_info.filename, display_asset_filename });
 			// Let's wait for both uploads to finish
 			let [ asset_hash, display_asset_hash ] = await Promise.all([
@@ -51,7 +51,8 @@ const main = async function() {
 				token_info: mint_request.details,
 				asset_hash: asset_hash,
 				asset_mimetype: asset_info.mime_type,
-				display_hash: display_asset_hash
+				display_hash: display_asset_hash,
+				display_mimetype: 'image/png'
 			});
 			console.log(`Metadata generated for mint request ${mint_request.id}:\n`, token_metadata);
 

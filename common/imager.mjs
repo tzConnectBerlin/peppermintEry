@@ -11,11 +11,16 @@ export default function (config) {
 	};
 
 	const to_jpeg_buffer = async function({ image }) {
-		return await image.jpeg({
-			quality: config.jpeg_quality,
-			mozjpeg: true
-		}).toBuffer();
+		// return await image.jpeg({
+		// 	quality: config.jpeg_quality,
+		// 	mozjpeg: true
+		// }).toBuffer();
+		return await image.jpeg(config.jpeg_options).toBuffer();
 	};
+
+	const to_png_buffer = async function({ image }) {
+		return await image.jpeg(config.png_options).toBuffer();
+	}
 
 	const resize_to = async function({ image, bounding_box }) {
 		let metadata = await image.metadata();
@@ -34,6 +39,7 @@ export default function (config) {
 	return {
 		load_image,
 		to_jpeg_buffer,
+		to_png_buffer,
 		resize_to
 	};
 }
