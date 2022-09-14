@@ -20,24 +20,29 @@ Call the minting endpoint, POSTing the following payload format:
 	"token_id": <unique token id>,
 	"mint_to": <Wallet Hash>,
 	"token_details": {
-        "name": "Hello World",
-        "description": "the Hello World nft",
-        "tags": [ "<tag>", "<tag>", ... ]
-        "attributes": {
-            "<stringKey>": "<value>",
-            ...
+                "name": "Hello World",
+                "description": "the Hello World nft",
+                "tags": [ "<tag>", "<tag>", ... ]
+                "attributes": [
+                        {
+                                "name": "<stringKey>"
+                                "value": "<value>"
+                        },
+                        ...
+                ],
+                ...
         },
-        ...
-    },
-    "image_asset": {
-       	"mime_type": "image/png",
-       	"filename": "hello.png",
-       	"b64_data": <Base64 image>
-	}
+        "image_asset": {
+                "mime_type": "image/png",
+                "filename": "hello.png",
+                "b64_data": <Base64 image>
+        }
 }
 ```
 
 If no token_id is specified, a deterministic token id will be generated from the asset IPFS hash.
+
+The `token_details` field is partial token metadata, subject to the TZIP-21 standard: https://tzip.tezosagora.org/proposal/tzip-21/
 
 Note: minting multiple unique tokens with the same asset (eg. numbered editions) is not handled adequately by the current version of this tool. It is on the roadmap for the future, though, and will require a different workflow.
 
