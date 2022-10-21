@@ -56,3 +56,22 @@ or
 `GET {root}/token_status?token_id=[token_id]`
 
 Get the detailed status of the request, including on-chain token status, if minted.
+
+### Monitoring
+
+Peppermintery also offers a service endpoint for monitoring the health of the minting setup:
+
+`GET {root}/health`
+
+This returns HTTP 200 if everything is found in order, and HTTP 503 Service Unavailable if issues have been found. The following checks are executed:
+
+- A canary / watchdog logic checks for the last time the Peppermintery worker process attempted to pull a job, and the check fails if this returns a timeout.
+- A canary / watchdog logic checks for the last time Peppermint attempted to pull a job, and the check fails if this returns a timeout.
+- The count of different Peppermint operation states is queried from a 'floor' id up, and the check fails if any error states (`unknown`, `failed`, `rejected`) are found.
+
+The health monitoring system can be adjusted by the `monitoring` section in the config. The meaning of the settings here:
+
+- `canary_cycle`: milliseconds between inserting a new canary record into both the Peppermint and Peppermintery job queues; these are rows which the Peppermint and Peppermintery worker processes respectively delete every time they pull a new job
+- `peppermint_canary_timeout`: timeout in milliseconds for the Peppermint canary
+- `mintery_canary_timeout`: timeout in milliseconds for the Peppermintery canary
+- `floor_peppermint_id`: operation stats are checked from this Peppermint id up; this can be set to the current id to 'zero out' the health check after past errors had been investigated

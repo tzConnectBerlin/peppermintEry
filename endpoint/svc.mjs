@@ -69,8 +69,16 @@ const main = async function(config) {
 		`${endpoint_root}/health`,
 		ash(async (req, res) => {
 			let response = await business.check_system_health();
+			if (response.warning) {
+				res = res.status(503);
+			}
 			res.json(response);
 		})
+	);
+
+	setInterval(
+		business.set_canary(),
+		config.monitoring.canary_period
 	);
 
 	let port = config.endpoint.port || 5001;

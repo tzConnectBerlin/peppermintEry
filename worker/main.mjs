@@ -21,6 +21,7 @@ const main = async function() {
 		let conn = {};
 		let mint_request = null;
 		try {
+			await db.kill_mintery_canaries();
 			mint_request = await db.checkout_request();
 			if (!mint_request) {
 				console.log('No pending requests...')
