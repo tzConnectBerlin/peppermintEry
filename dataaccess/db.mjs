@@ -18,7 +18,7 @@ const SET_STATE_SQL = "UPDATE peppermintery.requests SET state = $2 WHERE id = $
 const COMPLETE_REQUEST_SQL = "UPDATE peppermintery.requests SET state = 'submitted', peppermint_id = $2 WHERE id = $1";
 const INSERT_PEPPERMINT_OP_SQL = "INSERT INTO peppermint.operations (originator, command) VALUES($1, $2) RETURNING id";
 
-const GET_PEPPERMINT_CANARY_SQL = "SELECT * FROM peppermint.operations WHERE state='canary' ORDER BY submitted_at ASC LIMIT 1";
+const GET_PEPPERMINT_CANARY_SQL = "SELECT * FROM peppermint.operations WHERE state='canary' AND originator = $1 ORDER BY submitted_at ASC LIMIT 1";
 const GET_MINTERY_CANARY_SQL = "SELECT * FROM peppermintery.requests WHERE state='canary' ORDER BY submitted_at ASC LIMIT 1";
 const INSERT_PEPPERMINT_CANARY_SQL = "INSERT INTO peppermint.operations (originator, state, command) VALUES ($1, 'canary', '{}')";
 const INSERT_MINTERY_CANARY_SQL = "INSERT INTO peppermintery.requests(state) VALUES ('canary')";
@@ -90,7 +90,7 @@ export default function(connection) {
 		return first_or_null(result.rows);
 	}
 	
-	const get_peppermint_stats = async function({ floor_id }, db=pool) {
+	const get_peppermint_stats = async function({ floor_id, originator_address }, db=pool) {
 		let result = await db.query(GET_PEPPERMINT_STATS_SQL, [ originator_address, floor_id ]);
 		return result.rows;
 	}
@@ -113,17 +113,17 @@ export default function(connection) {
 		return result.rows[0].id;
 	};
 
-	const get_peppermint_canary = async function(db=pool) {
-		let result = await db.query(GET_PEPPERMINT_CANARY_SQL, []);
+	const get_peppermint_canary = async function({ originator_address }, db=pool) {
+		let result = await db.query(GET_PEPPERMINT_CANARY_SQL, [ originator_address ]);
 		return first_or_null(result.rows);
 	};
 
 	const get_mintery_canary = async function(db=pool) {
 		let result = await db.query(GET_MINTERY_CANARY_SQL, []);
-		return first_or_null(result).rows;
+		return first_or_null(result.rows);
 	};
 
-	const insert_peppermint_canary = function(db=pool) {
+	const insert_peppermint_canary = function({ originator_address }, db=pool) {
 		return db.query(INSERT_PEPPERMINT_CANARY_SQL, [ originator_address ]);
 	};
 

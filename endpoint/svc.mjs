@@ -77,8 +77,8 @@ const main = async function(config) {
 	);
 
 	setInterval(
-		business.set_canary(),
-		config.monitoring.canary_period
+		business.set_canary,
+		config.monitoring.canary_cycle
 	);
 
 	let port = config.endpoint.port || 5001;

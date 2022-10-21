@@ -98,8 +98,11 @@ export default async function(config) {
 
 		let [ mintery_canary, peppermint_canary, peppermint_stat_rows ] = await Promise.all([
 			db.get_mintery_canary(),
-			db.get_peppermint_canary(),
-			db.get_peppermint_stats({ since_id: config.monitoring.floor_peppermint_id }) ]);
+			db.get_peppermint_canary({ originator_address: config.chain.peppermint_originator }),
+			db.get_peppermint_stats({
+				originator_address: config.chain.peppermint_originator,
+				floor_id: config.monitoring.floor_peppermint_id 
+			}) ]);
 		
 		let now = Date.now();
 		if (mintery_canary) {
@@ -146,7 +149,9 @@ export default async function(config) {
 		// we do error management here because this will be called from a setinterval
 		try {
 			await Promise.all([
-				db.insert_peppermint_canary(),
+				db.insert_peppermint_canary({
+					originator_address: config.chain.peppermint_originator
+				}),
 				db.insert_mintery_canary()
 			]);
 			console.info("Health monitoring canary set.")
