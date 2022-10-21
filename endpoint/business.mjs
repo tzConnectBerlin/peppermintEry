@@ -109,15 +109,17 @@ export default async function(config) {
 			let delay = now - mintery_canary.submitted_at;
 			if (delay > config.monitoring.mintery_canary_timeout) {
 				errors.push(`Mintery canary timed out by ${delay}`);
+				up = false;
+				warning = true;
 			}
-			up = false;
 		}
 		if (peppermint_canary) {
 			let delay = now - peppermint_canary.submitted_at;
 			if (delay > config.monitoring.peppermint_canary_timeout) {
 				errors.push(`Peppermint canary timed out by ${delay}`)
+				up = false;
+				warning = true;
 			}
-			up = false;
 		}
 
 		let peppermint_stats = peppermint_stat_rows.reduce((obj, cur) => ({...obj, [cur.state]: cur.count}), {});
@@ -131,10 +133,6 @@ export default async function(config) {
 		}
 		if (peppermint_stats.rejected > 0) {
 			errors.push(`Found ${peppermint_stats.failed} operations with 'rejected' state`);
-			warning = true;
-		}
-
-		if (!up) {
 			warning = true;
 		}
 
