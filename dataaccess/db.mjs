@@ -11,11 +11,18 @@ const GET_REQUEST_BY_REQUEST_ID_SQL = "SELECT * FROM peppermintery.requests WHER
 const GET_REQUEST_BY_TOKEN_ID_SQL = "SELECT * FROM peppermintery.requests WHERE token_id = $1";
 const GET_ASSET_SQL = "SELECT * FROM peppermintery.assets WHERE request_id = $1";
 const GET_PEPPERMINT_OP_SQL = "SELECT * FROM peppermint.operations WHERE id = $1";
+const GET_PEPPERMINT_STATS_SQL = "SELECT state, COUNT(state) AS count FROM peppermint.operations WHERE originator = $1 AND id > $2 AND state <> 'canary' GROUP BY state ORDER BY state";
 
 const CHECKOUT_SQL = "WITH cte AS (SELECT id FROM peppermintery.requests WHERE state='pending' ORDER BY id ASC LIMIT 1) UPDATE peppermintery.requests AS rq SET state = 'processing' FROM cte WHERE cte.id = rq.id RETURNING *";
 const SET_STATE_SQL = "UPDATE peppermintery.requests SET state = $2 WHERE id = $1";
 const COMPLETE_REQUEST_SQL = "UPDATE peppermintery.requests SET state = 'submitted', peppermint_id = $2 WHERE id = $1";
 const INSERT_PEPPERMINT_OP_SQL = "INSERT INTO peppermint.operations (originator, command) VALUES($1, $2) RETURNING id";
+
+const GET_PEPPERMINT_CANARY_SQL = "SELECT * FROM peppermint.operations WHERE state='canary' AND originator = $1 ORDER BY submitted_at ASC LIMIT 1";
+const GET_MINTERY_CANARY_SQL = "SELECT * FROM peppermintery.requests WHERE state='canary' ORDER BY submitted_at ASC LIMIT 1";
+const INSERT_PEPPERMINT_CANARY_SQL = "INSERT INTO peppermint.operations (originator, state, command) VALUES ($1, 'canary', '{}')";
+const INSERT_MINTERY_CANARY_SQL = "INSERT INTO peppermintery.requests(state) VALUES ('canary')";
+const KILL_MINTERY_CANARIES_SQL = "DELETE FROM peppermintery.requests WHERE state='canary'";
 
 const DEFAULT_LIMIT = 100;
 
@@ -82,6 +89,11 @@ export default function(connection) {
 		let result = await db.query(GET_PEPPERMINT_OP_SQL, [ peppermint_id ]);
 		return first_or_null(result.rows);
 	}
+	
+	const get_peppermint_stats = async function({ floor_id, originator_address }, db=pool) {
+		let result = await db.query(GET_PEPPERMINT_STATS_SQL, [ originator_address, floor_id ]);
+		return result.rows;
+	}
 
 	const checkout_request = async function(db=pool) {
 		let result = await db.query(CHECKOUT_SQL, []);
@@ -99,7 +111,29 @@ export default function(connection) {
 	const insert_peppermint_op = async function({ originator_address, command }, db=pool) {
 		let result = await db.query(INSERT_PEPPERMINT_OP_SQL, [ originator_address, command ]);
 		return result.rows[0].id;
-	}
+	};
+
+	const get_peppermint_canary = async function({ originator_address }, db=pool) {
+		let result = await db.query(GET_PEPPERMINT_CANARY_SQL, [ originator_address ]);
+		return first_or_null(result.rows);
+	};
+
+	const get_mintery_canary = async function(db=pool) {
+		let result = await db.query(GET_MINTERY_CANARY_SQL, []);
+		return first_or_null(result.rows);
+	};
+
+	const insert_peppermint_canary = function({ originator_address }, db=pool) {
+		return db.query(INSERT_PEPPERMINT_CANARY_SQL, [ originator_address ]);
+	};
+
+	const insert_mintery_canary = function(db=pool) {
+		return db.query(INSERT_MINTERY_CANARY_SQL, []);
+	};
+
+	const kill_mintery_canaries = function(db=pool) {
+		return db.query(KILL_MINTERY_CANARIES_SQL, []);
+	};
 
 	const state = {
 		PENDING: 'pending',
@@ -122,10 +156,16 @@ export default function(connection) {
 		get_request_by_token_id,
 		get_asset_by_request_id,
 		get_peppermint_operation,
+		get_peppermint_stats,
 		checkout_request,
 		set_request_state,
 		complete_request,
 		insert_peppermint_op,
+		get_peppermint_canary,
+		get_mintery_canary,
+		insert_peppermint_canary,
+		insert_mintery_canary,
+		kill_mintery_canaries,
 		state
 	};
 }
