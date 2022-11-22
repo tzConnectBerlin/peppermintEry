@@ -9,16 +9,14 @@ When loading the configuration, the process looks at the environment variable `P
 
 ## Service endpoints
 
-### Insert new request
+### Insert new create request
 
-`POST {root}/`
+`PUT {root}/tokens/{token id}`
 
-Call the minting endpoint, POSTing the following payload format:
+Insert a new token creation request, PUTting the following payload format:
 
 ```
 {
-	"token_id": <unique token id>,
-	"mint_to": <Wallet Hash>,
 	"token_details": {
                 "name": "Hello World",
                 "description": "the Hello World nft",
@@ -36,28 +34,39 @@ Call the minting endpoint, POSTing the following payload format:
                 "mime_type": "image/png",
                 "filename": "hello.png",
                 "b64_data": <Base64 image>
-        }
+        },
+        "recipients": <Optional mint recipients record, see mint endpoint description>
 }
 ```
-
-If no token_id is specified, a deterministic token id will be generated from the asset IPFS hash.
 
 The `token_details` field is partial token metadata, subject to the TZIP-21 standard: https://tzip.tezosagora.org/proposal/tzip-21/
 
 Note: minting multiple unique tokens with the same asset (eg. numbered editions) is not handled adequately by the current version of this tool. It is on the roadmap for the future, though, and will require a different workflow.
 
+### Insert new mint request
+
+`POST {root}/tokens/{token id}/mint`
+
+Insert new mint requests for a token. The request body has to be one of the following:
+
+- JSON string of a valid tezos address; in this case, an amount of 1 token will be minted
+- A JSON object of the format `{ address, amount }`
+- A JSON array containing entries of the former two variants
+
 ### Get recent requests
 
-GET {root}/{?limit=[limit]}
+`GET {root}/tokens[?limit={limit}]`
 
 Get a list of recent requests with all details.
 
 ### Query token status
 
-`GET {root}/token_status?request_id=[request_id]`
-
-or
-
-`GET {root}/token_status?token_id=[token_id]`
+`GET {root}/tokens/{token id}`
 
 Get the detailed status of the request, including on-chain token status, if minted.
+
+### Query token mint recipient status (in progress)
+
+`GET {root}/tokens/{token id}/recipients/{address}`
+
+Get detailed status of the mint operation with the specified recipient.

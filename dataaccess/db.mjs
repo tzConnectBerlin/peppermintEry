@@ -5,6 +5,8 @@ const { Pool } = require('pg');
 
 const INSERT_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, recipient_address, details) VALUES ($1, $2, $3) RETURNING id";
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
+const INSERT_MINT_RECIPIENT_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, $2, $3) RETURNING id";
+const INSERT_BULK_MINT_RECIPIENTS_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, UNNEST($2), UNNEST($3)) RETURNING id";
 const GET_RECENT_SQL = "SELECT * FROM peppermintery.requests WHERE state <> 'canary' ORDER BY submitted_at DESC LIMIT $1";
 const GET_RECENT_BY_STATE_SQL = "SELECT * FROM peppermintery.requests WHERE state = $1 ORDER BY submitted_at DESC LiMIT $2";
 const GET_REQUEST_BY_REQUEST_ID_SQL = "SELECT * FROM peppermintery.requests WHERE id = $1";
@@ -54,6 +56,16 @@ export default function(connection) {
 	const insert_asset = async function({ request_id, asset_role, mime_type, filename }, db = pool) {
 		let result = await db.query(INSERT_ASSET_SQL, [ request_id, asset_role, mime_type, filename ]);
 		return result.rows[0].id;
+	};
+
+	const insert_mint_recipient = async function({ request_id, address, amount }, db = pool) {
+		let result = await db.query(INSERT_MINT_RECIPIENT_SQL, [ request_id, address, amount ]);
+		return result.rows[0].id;
+	};
+
+	const insert_bulk_mint_recipients = async function({ request_id, addresses, amounts }, db = pool) {
+		let result = await db.query(INSERT_BULK_MINT_RECIPIENTS_SQL, [ request_id, addresses, amounts ]);
+		return result.rows;
 	};
 
 	const get_requests = async function({ limit, state }, db=pool) {
@@ -117,6 +129,8 @@ export default function(connection) {
 		rollback_tx,
 		insert_request,
 		insert_asset,
+		insert_mint_recipient,
+		insert_bulk_mint_recipients,
 		get_requests,
 		get_request_by_request_id,
 		get_request_by_token_id,

@@ -40,17 +40,33 @@ const main = async function(config) {
 
 	let endpoint_root = config.endpoint.uri_root || ""
 
-	// mint request endpoint
-	app.post(
-		`${endpoint_root}/`,
+	// automatic token id generation is to be explored later
+	// app.post(
+	// 	`${endpoint_root}/tokens`,
+	// 	ash(async (req, res) => {
+	// 		let response = await business.new_create_request(req.body);
+	// 		res.json(response);
+	// 	})
+	// );
+
+	app.put(
+		`${endpoint_root}/tokens/:tokenid`,
 		ash(async (req, res) => {
-			let response = await business.new_mint_request(req.body);
+			let response = await business.new_create_request(req.body, req.params.tokenid);
+			res.json(response);
+		})
+	)
+
+	app.post(
+		`${endpoint_root}/tokens/:tokenid/mint`,
+		ash(async (req, res) => {
+			let response = await business.new_mint_request(req.body, req.params.tokenid);
 			res.json(response);
 		})
 	);
 
 	app.get(
-		`${endpoint_root}/`,
+		`${endpoint_root}/tokens`,
 		ash(async (req, res) => {
 			let response = await business.recent_requests(req.body);
 			res.json(response);
@@ -58,9 +74,9 @@ const main = async function(config) {
 	)
 	
 	app.get(
-		`${endpoint_root}/token_status`,
+		`${endpoint_root}/tokens/:tokenid/status`,
 		ash(async (req, res) => {
-			let response = await business.check_token_status(req.query);
+			let response = await business.check_token_status({ token_id: req.params.tokenid });
 			res.json(response);
 		})
 	);

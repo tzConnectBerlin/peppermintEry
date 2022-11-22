@@ -11,13 +11,12 @@ CREATE TABLE IF NOT EXISTS peppermintery.requests
 (
     id SERIAL,
 	token_id INTEGER NULL,
-    recipient_address character(36) COLLATE pg_catalog."default" NULL,
     details jsonb NULL,
 	state peppermintery.token_state NOT NULL DEFAULT 'pending'::peppermintery.token_state,
 	peppermint_id INTEGER NULL,
 	submitted_at timestamp with time zone NOT NULL DEFAULT now(),
 	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    CONSTRAINT requests_pkey PRIMARY KEY (id),
+    CONSTRAINT create_requests_pkey PRIMARY KEY (id),
 	CONSTRAINT uq_token_id UNIQUE (token_id)
 )
 TABLESPACE pg_default;
@@ -38,6 +37,21 @@ CREATE TABLE IF NOT EXISTS peppermintery.assets
         ON DELETE CASCADE
 )
 TABLESPACE pg_default;
+
+CREATE TABLE IF NOT EXISTS peppermintery.recipients
+(
+    id SERIAL,
+    request_id INTEGER NOT NULL,
+    address character(36) NOT NULL,
+    amount integer NOT NULL,
+    submitted_at timestamp with time zone NOT NULL DEFAULT now(),
+	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT mint_requests_pkey PRIMARY KEY (id)
+    CONSTRAINT fk_request_recipients FOREIGN KEY (request_id),
+        REFERENCES peppermintery.requests (id) MATCH SIMPLE
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+)
 
 CREATE OR REPLACE FUNCTION peppermintery.update_last_updated_at_column()
     RETURNS trigger
@@ -65,6 +79,16 @@ DO $$ BEGIN
 CREATE TRIGGER update_tokens_last_updated_at
     BEFORE UPDATE
     ON peppermintery.assets
+    FOR EACH ROW
+    EXECUTE FUNCTION peppermintery.update_last_updated_at_column();
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+CREATE TRIGGER update_tokens_last_updated_at
+    BEFORE UPDATE
+    ON peppermintery.recipients
     FOR EACH ROW
     EXECUTE FUNCTION peppermintery.update_last_updated_at_column();
 EXCEPTION
