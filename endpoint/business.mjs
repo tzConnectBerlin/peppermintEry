@@ -52,14 +52,14 @@ export default async function(config) {
 
 			let filename = `${request_id}-${image_asset.filename}`;
 
-			await Promise.all([
-				recipients ? insert_mint_recipients({ request_id, recipients }) : null,
+			let [ asset_id, recipient_ids ] = await Promise.all([
 				db.insert_asset({
 					request_id,
 					asset_role: 'artwork',
 					mime_type: image_asset.mime_type,
 					filename
 				}, conn),
+				recipients ? insert_mint_recipients({ request_id, recipients }, conn) : null,
 				filestor.write_b64_to_file({
 					filename,
 					b64_data: image_asset.b64_data
@@ -69,7 +69,7 @@ export default async function(config) {
 			await db.commit_tx(conn);
 			tx = false;
 			
-			return { filename, request_id };
+			return { request_id, asset_id, filename, recipient_ids };
 		} finally {
 			if (tx) {
 				await db.rollback_tx(conn);
@@ -92,7 +92,7 @@ export default async function(config) {
 		return db.get_requests({ limit });
 	}
 
-	const check_token_status = async function({ request_id, token_id }) { 
+	const check_token_status = async function({ /*request_id,*/ token_id }) { 
 		// let request = null;
 		// if (request_id && token_id) {
 		// 	throw new ValidationError('Ambiguous query. Specify either request_id or token_id.')

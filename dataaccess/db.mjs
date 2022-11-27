@@ -6,7 +6,7 @@ const { Pool } = require('pg');
 const INSERT_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, recipient_address, details) VALUES ($1, $2, $3) RETURNING id";
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
 const INSERT_MINT_RECIPIENT_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, $2, $3) RETURNING id";
-const INSERT_BULK_MINT_RECIPIENTS_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, UNNEST($2), UNNEST($3)) RETURNING id";
+const INSERT_BULK_MINT_RECIPIENTS_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, UNNEST(CAST($2 AS character[])), UNNEST(CAST($3 AS integer[])) RETURNING id";
 const GET_RECENT_SQL = "SELECT * FROM peppermintery.requests WHERE state <> 'canary' ORDER BY submitted_at DESC LIMIT $1";
 const GET_RECENT_BY_STATE_SQL = "SELECT * FROM peppermintery.requests WHERE state = $1 ORDER BY submitted_at DESC LiMIT $2";
 const GET_REQUEST_BY_REQUEST_ID_SQL = "SELECT * FROM peppermintery.requests WHERE id = $1";
@@ -14,10 +14,16 @@ const GET_REQUEST_BY_TOKEN_ID_SQL = "SELECT * FROM peppermintery.requests WHERE 
 const GET_ASSET_SQL = "SELECT * FROM peppermintery.assets WHERE request_id = $1";
 const GET_PEPPERMINT_OP_SQL = "SELECT * FROM peppermint.operations WHERE id = $1";
 
-const CHECKOUT_SQL = "WITH cte AS (SELECT id FROM peppermintery.requests WHERE state='pending' ORDER BY id ASC LIMIT 1) UPDATE peppermintery.requests AS rq SET state = 'processing' FROM cte WHERE cte.id = rq.id RETURNING *";
-const SET_STATE_SQL = "UPDATE peppermintery.requests SET state = $2 WHERE id = $1";
+const CHECKOUT_REQUEST_SQL = "WITH cte AS (SELECT id FROM peppermintery.requests WHERE state = 'pending' ORDER BY id ASC LIMIT 1) UPDATE peppermintery.requests AS rq SET state = 'processing' FROM cte WHERE cte.id = rq.id RETURNING *";
+const SET_REQUEST_STATE_SQL = "UPDATE peppermintery.requests SET state = $2 WHERE id = $1";
 const COMPLETE_REQUEST_SQL = "UPDATE peppermintery.requests SET state = 'submitted', peppermint_id = $2 WHERE id = $1";
-const INSERT_PEPPERMINT_OP_SQL = "INSERT INTO peppermint.operations (originator, command) VALUES($1, $2) RETURNING id";
+
+const CHECKOUT_RECIPIENTS_SQL = "WITH cte AS (SELECT rec.id AS id FROM peppermintery.recipients AS rec INNER JOIN peppermintery.requests AS rq ON rq.id = rec.request_id WHERE rec.state = 'pending' AND rq.state = 'submitted' ORDER BY id ASC LIMIT 100) UPDATE peppermintery.recipients AS rec SET state = 'processing' FROM cte WHERE cte.id = rec.id RETURNING rec.id AS id, rec.address AS address, rec.amount AS amount, rq.token_id AS token_id";
+const SET_RECIPIENT_STATES_SQL = "UPDATE peppermintery.recipients SET state=$2 WHERE id = ANY($1)";
+const COMPLETE_RECIPIENTS_SQL = "UPDATE peppermintery.recipients AS rec SET state = 'submitted', peppermint_id = data.peppermint_id FROM UNNEST( CAST($1 AS integer[]), CAST($2 AS integer[]) ) AS data(recipient_id, peppermint_id) WHERE rec.id = data.recipient_id";
+
+const INSERT_PEPPERMINT_OP_SQL = "INSERT INTO peppermint.operations (originator, command) VALUES ($1, $2) RETURNING id";
+const INSERT_BULK_PEPPERMINT_OPS_SQL = "INSERT INTO peppermint.operations (originator, command) VALUES ($1, UNNEST(CAST($2 AS jsonb[]))) RETURNING id";
 
 const DEFAULT_LIMIT = 100;
 
@@ -29,8 +35,13 @@ const first_or_null = function(l) {
 	}
 };
 
+
 export default function(connection) {
 	let pool = new Pool(connection);
+
+	const unnest_ids = function(l) {
+		return l.map((row) => (row.id));
+}
 
 	const get_connection = function() {
 		return pool.connect();
@@ -65,7 +76,7 @@ export default function(connection) {
 
 	const insert_bulk_mint_recipients = async function({ request_id, addresses, amounts }, db = pool) {
 		let result = await db.query(INSERT_BULK_MINT_RECIPIENTS_SQL, [ request_id, addresses, amounts ]);
-		return result.rows;
+		return unnest_ids(result.rows);
 	};
 
 	const get_requests = async function({ limit, state }, db=pool) {
@@ -96,21 +107,39 @@ export default function(connection) {
 	}
 
 	const checkout_request = async function(db=pool) {
-		let result = await db.query(CHECKOUT_SQL, []);
+		let result = await db.query(CHECKOUT_REQUEST_SQL, []);
 		return first_or_null(result.rows);
 	};
 
 	const set_request_state = function({ request_id, state }, db=pool) {
-		return db.query(SET_STATE_SQL, [ request_id, state ]);
+		return db.query(SET_REQUEST_STATE_SQL, [ request_id, state ]);
 	};
 
 	const complete_request = function({ request_id, peppermint_id }, db=pool) {
 		return db.query(COMPLETE_REQUEST_SQL, [ request_id, peppermint_id ]);
 	};
 
+	const checkout_recipients = async function(db=pool) {
+		let result = await db.query(CHECKOUT_RECIPIENTS_SQL, []);
+		return result.rows;
+	};
+
+	const set_recipient_states = function({ recipient_ids, state }, db=pool) {
+		return db.query(SET_RECIPIENT_STATES_SQL, [ recipient_ids, state ]);
+	}
+
+	const complete_recipients = function({ recipient_ids, peppermint_ids}, db=pool) {
+		return db.query(COMPLETE_RECIPIENTS_SQL, [ recipient_ids, peppermint_ids ]);
+	}
+
 	const insert_peppermint_op = async function({ originator_address, command }, db=pool) {
 		let result = await db.query(INSERT_PEPPERMINT_OP_SQL, [ originator_address, command ]);
 		return result.rows[0].id;
+	}
+
+	const insert_bulk_peppermint_ops = async function({ originator_address, commands }, db=pool) {
+		let result = await db.query(INSERT_BULK_PEPPERMINT_OPS_SQL, [originator_address, commands ]);
+		return unnest_ids(result.rows);
 	}
 
 	const state = {
@@ -139,7 +168,12 @@ export default function(connection) {
 		checkout_request,
 		set_request_state,
 		complete_request,
+		checkout_recipients,
+		set_recipient_states,
+		complete_recipients,
 		insert_peppermint_op,
+		insert_bulk_peppermint_ops,
+		unnest_ids,
 		state
 	};
 }

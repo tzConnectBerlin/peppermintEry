@@ -1,7 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS peppermintery;
 
 DO $$ BEGIN
-   CREATE TYPE peppermintery.token_state AS ENUM
+   CREATE TYPE peppermintery.request_state AS ENUM
      ('pending', 'processing', 'submitted', 'rejected', 'failed', 'canary');
 EXCEPTION
     WHEN duplicate_object THEN null;
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS peppermintery.requests
     id SERIAL,
 	token_id INTEGER NULL,
     details jsonb NULL,
-	state peppermintery.token_state NOT NULL DEFAULT 'pending'::peppermintery.token_state,
+	state peppermintery.request_state NOT NULL DEFAULT 'pending'::peppermintery.request_state,
 	peppermint_id INTEGER NULL,
 	submitted_at timestamp with time zone NOT NULL DEFAULT now(),
 	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -44,6 +44,8 @@ CREATE TABLE IF NOT EXISTS peppermintery.recipients
     request_id INTEGER NOT NULL,
     address character(36) NOT NULL,
     amount integer NOT NULL,
+	state peppermintery.request_state NOT NULL DEFAULT 'pending'::peppermintery.request_state,
+    peppermint_id INTEGER NULL,
     submitted_at timestamp with time zone NOT NULL DEFAULT now(),
 	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
     CONSTRAINT mint_requests_pkey PRIMARY KEY (id)
