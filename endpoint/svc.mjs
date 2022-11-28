@@ -20,7 +20,7 @@ const main = async function(config) {
 
 	let app = Express();
 
-	app.use(BodyParser.json());
+	app.use(BodyParser.json({ limit: '50mb' }));
 
 	// logger
 	app.use(Morgan('combined'));
@@ -85,8 +85,16 @@ const main = async function(config) {
 		`${endpoint_root}/health`,
 		ash(async (req, res) => {
 			let response = await business.check_system_health();
+			if (response.warning) {
+				res = res.status(503);
+			}
 			res.json(response);
 		})
+	);
+
+	setInterval(
+		business.set_canary,
+		config.monitoring.canary_cycle
 	);
 
 	let port = config.endpoint.port || 5001;

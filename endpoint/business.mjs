@@ -134,12 +134,70 @@ export default async function(config) {
 	}
 
 	const check_system_health = async function() {
-		//FIXME
+		let up = true;
+		let warning = false;
+		let errors = [];
+
+		let [ mintery_canary, peppermint_canary, peppermint_stat_rows ] = await Promise.all([
+			db.get_mintery_canary(),
+			db.get_peppermint_canary({ originator_address: config.chain.peppermint_originator }),
+			db.get_peppermint_stats({
+				originator_address: config.chain.peppermint_originator,
+				floor_id: config.monitoring.floor_peppermint_id 
+			}) ]);
+		
+		let now = Date.now();
+		if (mintery_canary) {
+			let delay = now - mintery_canary.submitted_at;
+			if (delay > config.monitoring.mintery_canary_timeout) {
+				errors.push(`Mintery canary timed out by ${delay}`);
+				up = false;
+				warning = true;
+			}
+		}
+		if (peppermint_canary) {
+			let delay = now - peppermint_canary.submitted_at;
+			if (delay > config.monitoring.peppermint_canary_timeout) {
+				errors.push(`Peppermint canary timed out by ${delay}`)
+				up = false;
+				warning = true;
+			}
+		}
+
+		let peppermint_stats = peppermint_stat_rows.reduce((obj, cur) => ({...obj, [cur.state]: cur.count}), {});
+		if (peppermint_stats.unknown > 0) {
+			errors.push(`Found ${peppermint_stats.unknown} operations with 'unknown' state`);
+			warning = true;
+		}
+		if (peppermint_stats.failed > 0) {
+			errors.push(`Found ${peppermint_stats.failed} operations with 'failed' state`);
+			warning = true;
+		}
+		if (peppermint_stats.rejected > 0) {
+			errors.push(`Found ${peppermint_stats.failed} operations with 'rejected' state`);
+			warning = true;
+		}
 
 		return {
-			dummy: true,
-			up: true
+			up,
+			warning,
+			errors
 		};
+	}
+
+	const set_canary = async function() {
+		// we do error management here because this will be called from a setinterval
+		try {
+			await Promise.all([
+				db.insert_peppermint_canary({
+					originator_address: config.chain.peppermint_originator
+				}),
+				db.insert_mintery_canary()
+			]);
+			console.info("Health monitoring canary set.")
+		} catch (e) {
+			console.error("Error encountered while setting health monitoring canary:\n", e);
+		}
 	}
 
 	return {
@@ -147,6 +205,7 @@ export default async function(config) {
 		new_mint_request,
 		recent_requests,
 		check_token_status,
-		check_system_health
+		check_system_health,
+		set_canary
 	}
 }

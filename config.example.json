@@ -24,7 +24,14 @@
 	"assets": {
 		"assets_folder": "assets",
 		"display_bounding_box": 400,
-		"jpeg_quality": 95
+		"jpeg_options": {
+			"quality": 98,
+			"mozjpeg": true
+		},
+		"png_options": {
+			"compressionLevel": 9,
+			"progressive": true
+		}
 	},
 	"token": {
 		"symbol": "PLAN9",
@@ -33,6 +40,12 @@
 				"tz1burnburnburnburnburnburnburjAYjjX"
 			]
 		}
+	},
+	"monitoring": {
+		"canary_cycle": 60000,
+		"peppermint_canary_timeout": 120000,
+		"mintery_canary_timeout": 120000,
+		"floor_peppermint_id": 0
 	},
 	"polling_delay": 10000
 }
