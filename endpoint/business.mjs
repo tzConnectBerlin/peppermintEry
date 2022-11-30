@@ -24,15 +24,18 @@ export default function(config) {
 	}
 
 	const insert_mint_recipients = async function({ request_id, recipients }, conn=undefined) {
-		if (typeof recipients != "array") {
+		if(recipients.split(',').length > 0) {
+			recipients = recipients.split(',')
+		}
+		if (!(Array.isArray(recipients))) {
 			return db.insert_mint_recipient(process_recipient_record(recipients), conn);
 		} else {
 			let addresses = [];
 			let amounts = [];
 			for (let recipient of recipients) {
-				let { address, amount } = process_recipient_record(recipient);
-				addresses.push(address);
-				amounts.push(amount);
+				let result = process_recipient_record(recipient);
+				addresses.push(result.recipient);
+				amounts.push(result.amount);
 			}
 			return db.insert_bulk_mint_recipients({ request_id, addresses, amounts}, conn);
 		}

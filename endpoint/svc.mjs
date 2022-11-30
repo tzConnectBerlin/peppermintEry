@@ -1,6 +1,7 @@
 import ConfLoader from '../common/confloader.mjs'
 import Routes from './routes.mjs'
-import ValidationError from '../common/errors.mjs'
+import { ValidationError } from '../common/errors.mjs'
+import business from './business.mjs'
 
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url);
@@ -16,7 +17,8 @@ const config = ConfLoader();
 
 const main = async function(config) {
 	let app = Express();
-
+	let endpoint_root = config.endpoint.uri_root || ""
+	
 	app.use(BodyParser.json({ limit: '50mb' }));
 
 	// logger
@@ -45,7 +47,7 @@ const main = async function(config) {
 		}
 	});
 
-	setInterval(
+	setInterval(() =>
 		business.set_canary,
 		config.monitoring.canary_cycle
 	);
