@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS peppermintery.requests
 	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
     CONSTRAINT create_requests_pkey PRIMARY KEY (id),
 	CONSTRAINT uq_token_id UNIQUE (token_id)
-)
-TABLESPACE pg_default;
+);
 
 CREATE TABLE IF NOT EXISTS peppermintery.assets
 (
@@ -35,8 +34,7 @@ CREATE TABLE IF NOT EXISTS peppermintery.assets
         REFERENCES peppermintery.requests (id) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE
-)
-TABLESPACE pg_default;
+);
 
 CREATE TABLE IF NOT EXISTS peppermintery.recipients
 (
@@ -53,7 +51,7 @@ CREATE TABLE IF NOT EXISTS peppermintery.recipients
         REFERENCES peppermintery.requests (id) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE
-)
+);
 
 CREATE OR REPLACE FUNCTION peppermintery.update_last_updated_at_column()
     RETURNS trigger
