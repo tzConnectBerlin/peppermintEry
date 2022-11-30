@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS peppermintery.recipients
     peppermint_id INTEGER NULL,
     submitted_at timestamp with time zone NOT NULL DEFAULT now(),
 	last_updated_at timestamp with time zone NOT NULL DEFAULT now(),
-    CONSTRAINT mint_requests_pkey PRIMARY KEY (id)
-    CONSTRAINT fk_request_recipients FOREIGN KEY (request_id),
+    CONSTRAINT mint_requests_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_request_recipients FOREIGN KEY (request_id)
         REFERENCES peppermintery.requests (id) MATCH SIMPLE
         ON UPDATE CASCADE
         ON DELETE CASCADE

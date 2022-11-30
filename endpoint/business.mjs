@@ -9,7 +9,7 @@ export default function(config) {
 	const process_recipient_record = function(recipient) {
 		switch (typeof recipient) {
 			case "string":
-				return { recipient, amount: 1 };
+				return { address: recipient, amount: 1 };
 			case "object":
 				if (!recipient.address) {
 					throw new ValidationError("Missing recipient address");
@@ -24,9 +24,7 @@ export default function(config) {
 	}
 
 	const insert_mint_recipients = async function({ request_id, recipients }, conn=undefined) {
-		if (typeof recipients != "array") {
-			return db.insert_mint_recipient(process_recipient_record(recipients), conn);
-		} else {
+		if (Array.isArray(recipients)) {
 			let addresses = [];
 			let amounts = [];
 			for (let recipient of recipients) {
@@ -35,6 +33,8 @@ export default function(config) {
 				amounts.push(amount);
 			}
 			return db.insert_bulk_mint_recipients({ request_id, addresses, amounts}, conn);
+		} else {
+			return db.insert_mint_recipient(process_recipient_record(recipients), conn);
 		}
 	};
 
@@ -52,14 +52,15 @@ export default function(config) {
 
 			let filename = `${request_id}-${image_asset.filename}`;
 
-			let [ asset_id, recipient_ids ] = await Promise.all([
+			let recipient_ids = recipients ? (await insert_mint_recipients({ request_id, recipients }, conn)) : null;
+
+			let [ asset_id ] = await Promise.all([
 				db.insert_asset({
 					request_id,
 					asset_role: 'artwork',
 					mime_type: image_asset.mime_type,
 					filename
 				}, conn),
-				recipients ? insert_mint_recipients({ request_id, recipients }, conn) : null,
 				filestor.write_b64_to_file({
 					filename,
 					b64_data: image_asset.b64_data

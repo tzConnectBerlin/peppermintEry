@@ -56,5 +56,5 @@ export default function({ app, config }) {
 		})
 	);
 
-  return app;
+  return endpoint_root;
 }
