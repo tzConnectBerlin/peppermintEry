@@ -48,7 +48,7 @@ export default function(config) {
 			await db.begin_tx(conn);
 			tx = true;
 
-			let request_id = await db.insert_request({ token_id, mint_to, token_details }, conn);
+			let request_id = await db.insert_request({ token_id, token_details }, conn);
 
 			let filename = `${request_id}-${image_asset.filename}`;
 

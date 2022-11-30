@@ -3,7 +3,7 @@ const require = createRequire(import.meta.url);
 
 const { Pool } = require('pg');
 
-const INSERT_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, recipient_address, details) VALUES ($1, $2, $3) RETURNING id";
+const INSERT_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, details) VALUES ($1, $3) RETURNING id";
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
 const INSERT_MINT_RECIPIENT_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, $2, $3) RETURNING id";
 const INSERT_BULK_MINT_RECIPIENTS_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, UNNEST(CAST($2 AS character[])), UNNEST(CAST($3 AS integer[])) RETURNING id";
@@ -66,8 +66,8 @@ export default function(connection) {
 		return db.query('ROLLBACK');
 	};
 
-	const insert_request = async function({ token_id, mint_to, token_details }, db = pool) {
-		let result = await db.query(INSERT_REQUEST_SQL, [ token_id, mint_to, token_details ]);
+	const insert_request = async function({ token_id, token_details }, db = pool) {
+		let result = await db.query(INSERT_REQUEST_SQL, [ token_id, token_details ]);
 		return result.rows[0].id;
 	};
 
@@ -213,7 +213,7 @@ export default function(connection) {
 		insert_peppermint_canary,
 		insert_mintery_canary,
 		kill_mintery_canaries,
-		unnest_ids,
+		
 		state
 	};
 }
