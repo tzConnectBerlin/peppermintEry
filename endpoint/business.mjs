@@ -98,7 +98,7 @@ export default function(config) {
 		// if (request_id && token_id) {
 		// 	throw new ValidationError('Ambiguous query. Specify either request_id or token_id.')
 		// } else if (token_id) {
-		request = await db.get_request_by_token_id({ token_id });
+		let request = await db.get_request_by_token_id({ token_id });
 		// } else if (request_id) {
 		// 	request = await db.get_request_by_request_id({ request_id });
 		// } else {

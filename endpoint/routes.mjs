@@ -25,7 +25,7 @@ export default function({ app, config }) {
 	)
 
 	app.post(
-		`${endpoint_root}/tokens/:tokenid/mint`,
+		`${endpoint_root}/tokens/:tokenid/recipients`,
 		ash(async (req, res) => {
 			let response = await business.new_mint_request(req.body, req.params.tokenid);
 			res.json(response);
@@ -41,7 +41,7 @@ export default function({ app, config }) {
 	)
 	
 	app.get(
-		`${endpoint_root}/tokens/:tokenid/status`,
+		`${endpoint_root}/tokens/:tokenid`,
 		ash(async (req, res) => {
 			let response = await business.check_token_status({ token_id: req.params.tokenid });
 			res.json(response);

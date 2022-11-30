@@ -45,7 +45,7 @@ Note: minting multiple unique tokens with the same asset (eg. numbered editions)
 
 ### Insert new mint request
 
-`POST {root}/tokens/{token id}/mint`
+`POST {root}/tokens/{token id}/recipients`
 
 Insert new mint requests for a token. The request body has to be one of the following:
 
