@@ -35,7 +35,7 @@ export default function({ app, config }) {
 	app.get(
 		`${endpoint_root}/tokens`,
 		ash(async (req, res) => {
-			let response = await business.recent_requests(req.body);
+			let response = await business.get_create_requests(req.query);
 			res.json(response);
 		})
 	)
@@ -43,7 +43,23 @@ export default function({ app, config }) {
 	app.get(
 		`${endpoint_root}/tokens/:tokenid`,
 		ash(async (req, res) => {
-			let response = await business.check_token_status({ token_id: req.params.tokenid });
+			let response = await business.get_create_request(req.params.tokenid);
+			res.json(response);
+		})
+	);
+
+	app.get(
+		`${endpoint_root}/tokens/:tokenid/recipients`,
+		ash(async (req, res) => {
+			let response = await business.get_mint_requests(req.query, req.params.tokenid);
+			res.json(response);
+		})
+	);
+
+	app.get(
+		`${endpoint_root}/tokens/:tokenid/recipients/:address`,
+		ash(async (req, res) => {
+			let response = await business.get_mint_requests_for_address(req.params.tokenid, req.params.address);
 			res.json(response);
 		})
 	);
@@ -51,7 +67,7 @@ export default function({ app, config }) {
 	app.get(
 		`${endpoint_root}/health`,
 		ash(async (req, res) => {
-			let response = await business.check_system_health();
+			let response = {};
 			res.json(response);
 		})
 	);

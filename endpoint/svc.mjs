@@ -1,6 +1,6 @@
 import ConfLoader from '../common/confloader.mjs'
 import Routes from './routes.mjs'
-import { ValidationError } from '../common/errors.mjs'
+import { NotFoundError, ValidationError } from '../common/errors.mjs'
 
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url);
@@ -41,6 +41,9 @@ const main = async function(config) {
 		if (err instanceof ValidationError) {
 			console.log(err);
 			res.status(400).json({ error: err.name, message: err.message});
+		} else if (err instanceof NotFoundError ) {
+			console.log(err);
+			res.status(404).json({ error: err.name, message: err.message });
 		} else {
 			next(err);
 		}

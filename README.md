@@ -43,6 +43,18 @@ The `token_details` field is partial token metadata, subject to the TZIP-21 stan
 
 Note: minting multiple unique tokens with the same asset (eg. numbered editions) is not handled adequately by the current version of this tool. It is on the roadmap for the future, though, and will require a different workflow.
 
+### Get status for create token requests
+
+`GET {root}/tokens[?[limit={limit}]&[before={timestamp}]]`
+
+Get a list of recent create requests with all details and status. Limit defaults to 100.
+
+### Get status for individual create token request
+
+`GET {root}/tokens/{token id}`
+
+Get the detailed status of the request, including on-chain token status, if minted.
+
 ### Insert new mint request
 
 `POST {root}/tokens/{token id}/recipients`
@@ -53,23 +65,17 @@ Insert new mint requests for a token. The request body has to be one of the foll
 - A JSON object of the format `{ address, amount }`
 - A JSON array containing entries of the former two variants
 
-### Get recent requests
+### Get status for token mint recipients
 
-`GET {root}/tokens[?limit={limit}]`
+`GET {root}/tokens/{token id}/recipients[?[limit={limit}]&[before={timestamp}]]`
 
-Get a list of recent requests with all details.
+Get a list of recent mint requests with all details and status. Limit defaults to 100.
 
-### Query token status
-
-`GET {root}/tokens/{token id}`
-
-Get the detailed status of the request, including on-chain token status, if minted.
-
-### Query token mint recipient status (in progress)
+### Get status for individual token mint recipient
 
 `GET {root}/tokens/{token id}/recipients/{address}`
 
-Get detailed status of the mint operation with the specified recipient.
+Get detailed status of the mint operation(s) for the specified recipient.
 
 ### Monitoring
 
