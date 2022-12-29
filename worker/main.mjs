@@ -68,7 +68,7 @@ const main = async function() {
 				token_id: create_request.token_id,
 				token_metadata_hash
 			});
-			let peppermint_id = await db.insert_peppermint_op({ originator_address: peppermint.originator_address, peppermint_command });
+			let peppermint_id = await db.insert_peppermint_op({ originator_address: peppermint.originator_address, command: peppermint_command });
 			await db.complete_request({ request_id: create_request.id, peppermint_id }, conn);
 			db.commit_tx(conn);
 			tx = false;
@@ -154,7 +154,6 @@ const main = async function() {
 			let [ result, _ ] = await Promise.all([
 				heartbeat_a(),
 				heartbeat_b(),
-				db.kill_mintery_canaries(),
 				new Promise(_ => setTimeout(_, config.polling_delay))
 			]);
 			//signal = result;
