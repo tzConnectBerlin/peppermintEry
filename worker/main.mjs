@@ -97,13 +97,14 @@ const main = async function() {
 		let tx = false;
 		let conn = {};
 		let recipients = null;
+		let recipient_ids = null;
 		try {
 			recipients = await db.checkout_recipients();
 			if (recipients.length === 0) {
 				console.log('No pending mint requests...');
 				return true;
 			}
-			let recipient_ids = db.unnest_ids(recipients);
+			recipient_ids = db.unnest_ids(recipients);
 			console.log(`Processing ${recipients.length} mint requests with ids`, recipient_ids);
 
 			let commands = [];
@@ -113,7 +114,7 @@ const main = async function() {
 					address: recipient.address,
 					amount: recipient.amount
 				});
-				commands.push(command);
+				commands.push(command);				
 			}
 
 			// Start the transactional part <3
@@ -132,9 +133,9 @@ const main = async function() {
 
 			console.log('Completed processing of mint requests with ids', recipient_ids);
 		} catch(err) {
-			if (recipients) {
+			if (recipient_ids) {
 				console.error('An error has occurred while processing mint requests...\n', err);
-				await db.set_recipient_states({ recipient_ids: create_request.id, state: db.state.FAILED });
+				await db.set_recipient_states({ recipient_ids, state: db.state.FAILED });
 			} 
 			return false;
 		} finally {

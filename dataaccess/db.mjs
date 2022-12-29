@@ -188,6 +188,7 @@ export default function(connection) {
 	};
 
 	return {
+		unnest_ids,
 		get_connection,
 		begin_tx,
 		commit_tx,
