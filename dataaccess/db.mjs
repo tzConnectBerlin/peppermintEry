@@ -20,7 +20,7 @@ const CHECKOUT_CREATE_REQUEST_SQL = "WITH cte AS (SELECT id FROM peppermintery.r
 const SET_REQUEST_STATE_SQL = "UPDATE peppermintery.requests SET state = $2 WHERE id = $1";
 const COMPLETE_REQUEST_SQL = "UPDATE peppermintery.requests SET state = 'submitted', peppermint_id = $2 WHERE id = $1";
 
-const CHECKOUT_MINT_REQUESTS_SQL = "WITH cte AS (SELECT rec.id AS id FROM peppermintery.recipients AS rec INNER JOIN peppermintery.requests AS rq ON rq.id = rec.request_id WHERE rec.state = 'pending' AND rq.state = 'submitted' ORDER BY id ASC LIMIT 100) UPDATE peppermintery.recipients AS rec SET state = 'processing' FROM cte WHERE cte.id = rec.id RETURNING rec.id AS id, rec.address AS address, rec.amount AS amount, rq.token_id AS token_id";
+const CHECKOUT_MINT_REQUESTS_SQL = "WITH cte AS (SELECT rec.id AS id, rec.address AS address, rec.amount AS amount, rq.token_id AS token_id FROM peppermintery.recipients AS rec INNER JOIN peppermintery.requests AS rq ON rq.id = rec.request_id WHERE rec.state = 'pending' AND rq.state = 'submitted' ORDER BY id ASC LIMIT 100) UPDATE peppermintery.recipients AS rec SET state = 'processing' FROM cte WHERE cte.id = rec.id RETURNING cte.id AS id, cte.address AS address, cte.amount AS amount, cte.token_id AS token_id";
 const SET_MINT_REQUEST_STATES_SQL = "UPDATE peppermintery.recipients SET state=$2 WHERE id = ANY($1)";
 const COMPLETE_MINT_REQUESTS_SQL = "UPDATE peppermintery.recipients AS rec SET state = 'submitted', peppermint_id = data.peppermint_id FROM UNNEST( CAST($1 AS integer[]), CAST($2 AS integer[]) ) AS data(recipient_id, peppermint_id) WHERE rec.id = data.recipient_id";
 
