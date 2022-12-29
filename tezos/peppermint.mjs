@@ -32,7 +32,7 @@ export default function(config) {
 	}
 
 	return {
-		originator_address,
+		originator_address: config.peppermint_originator,
 		generate_create_command,
 		generate_mint_command
 	};
