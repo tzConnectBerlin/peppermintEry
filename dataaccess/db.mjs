@@ -3,6 +3,13 @@ const require = createRequire(import.meta.url);
 
 const { Pool } = require('pg');
 
+const REGISTER_PROCESS_SQL = "INSERT INTO peppermintery.processes (originator, process_uuid) VALUES ($1, $2) ON CONFLICT DO NOTHING";
+const UNREGISTER_PROCESS_SQL = "DELETE FROM peppermintery.processes WHERE originator=$1 AND process_uuid=$2";
+
+const UPDATE_LAST_PULL = "UPDATE peppermintery.processes SET messages = jsonb_set(messages, '{last_pull_at_epoch}', to_jsonb(extract(epoch from now()::timestamptz))) WHERE originator=$1 AND process_uuid=$2 RETURNING *";
+const GET_LAST_PULL_MINTERY = "SELECT * FROM peppermintery.processes WHERE originator=$1";
+const GET_LAST_PULL_PEPPERMINT = "SELECT * FROM peppermint.processes WHERE originator=$1";
+
 const INSERT_CREATE_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, details) VALUES ($1, $2) RETURNING id";
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
 const INSERT_MINT_MINT_REQUEST_SQL = "INSERT INTO peppermintery.recipients(request_id, address, amount) VALUES ($1, $2, $3) RETURNING id";
@@ -66,6 +73,33 @@ export default function(connection) {
 	const rollback_tx = function(db) {
 		return db.query('ROLLBACK');
 	};
+
+	const register_process = async function({ originator, process_uuid }) {
+		let result = await pool.query(REGISTER_PROCESS_SQL, [ originator, process_uuid ]);
+		return result.rowCount;
+	};
+
+	const unregister_process = function({ originator, process_uuid }) {
+		return pool.query(UNREGISTER_PROCESS_SQL, [ originator, process_uuid ]);
+	};
+
+	const update_last_pull = function({ originator, process_uuid }) {
+		return pool.query(UPDATE_LAST_PULL, [ originator, process_uuid ]);
+	}
+
+	const get_last_pull_peppermint = function ({ originator }) {
+		const result = pool.query(GET_LAST_PULL_PEPPERMINT, [ originator ]);
+		const row = first_or_null(result.rows);
+		const parsed_messages = JSON.parse(row.messages)
+		return parsed_messages.last_pull_at_epoch;
+	}
+
+	const get_last_pull_mintery = function ({ originator }) {
+		const result = pool.query(GET_LAST_PULL_MINTERY, [ originator ]);
+		const row = first_or_null(result.rows);
+		const parsed_messages = JSON.parse(row.messages)
+		return parsed_messages.last_pull_at_epoch;
+	}
 
 	const insert_create_request = async function({ token_id, token_details }, db = pool) {
 		let result = await db.query(INSERT_CREATE_REQUEST_SQL, [ token_id, token_details ]);
@@ -193,6 +227,11 @@ export default function(connection) {
 		begin_tx,
 		commit_tx,
 		rollback_tx,
+		register_process,
+		unregister_process,
+		update_last_pull,
+		get_last_pull_peppermint,
+		get_last_pull_mintery,
 		insert_create_request,
 		insert_asset,
 		insert_mint_recipient,

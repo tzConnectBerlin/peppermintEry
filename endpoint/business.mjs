@@ -134,20 +134,52 @@ export default function(config) {
 		return result.map(parse_request_status);
 	};
 
-	// const check_system_health = async function() {
-	// 	let up = true;
-	// 	let warning = false;
-	// 	let errors = [];
+	const check_system_health = async function() {
+	 	let up = true;
+	 	let warning = false;
+	 	let errors = [];
 
-	// 	let [ mintery_canary, peppermint_canary, peppermint_stat_rows ] = await Promise.all([
-	// 		db.get_mintery_canary(),
-	// 		db.get_peppermint_canary({ originator_address: config.chain.peppermint_originator }),
-	// 		db.get_peppermint_stats({
-	// 			originator_address: config.chain.peppermint_originator,
-	// 			floor_id: config.monitoring.floor_peppermint_id 
-	// 		}) ]);
-		
-	// 	let now = Date.now();
+		 const {
+			 chain: {
+				 peppermint_originator: originator
+			 },
+			 monitoring: {
+				 last_pull_timeout
+			 }
+		 } = config;
+
+		let [ mintery_last_epoch, peppermint_last_epoch ] = await Promise.all([
+			db.get_last_pull_mintery({ originator }),
+			db.get_last_pull_peppermint({ originator })
+		]);
+
+		// 	let [ mintery_canary, peppermint_canary, peppermint_stat_rows ] = await Promise.all([
+		// 		db.get_mintery_canary(),
+		// 		db.get_peppermint_canary({ originator_address: config.chain.peppermint_originator }),
+		// 		db.get_peppermint_stats({
+		// 			originator_address: config.chain.peppermint_originator,
+		// 			floor_id: config.monitoring.floor_peppermint_id
+		// 		}) ]);
+
+		let now = Date.now();
+		if (mintery_last_epoch) {
+			const mintery_epoch_delay = now - mintery_last_epoch;
+			if (mintery_epoch_delay > last_pull_timeout) {
+				errors.push(`Mintery last pull timed out by ${mintery_epoch_delay}`);
+				up = false;
+				warning = true;
+			}
+		}
+
+		if (peppermint_last_epoch) {
+			const peppermint_epoch_delay = now - peppermint_last_epoch;
+			if (peppermint_epoch_delay > last_pull_timeout) {
+				errors.push(`Peppermint last pull timed out by ${peppermint_epoch_delay}`);
+				up = false;
+				warning = true;
+			}
+		}
+
 	// 	if (mintery_canary) {
 	// 		let delay = now - mintery_canary.submitted_at;
 	// 		if (delay > config.monitoring.mintery_canary_timeout) {
@@ -179,12 +211,12 @@ export default function(config) {
 	// 		warning = true;
 	// 	}
 
-	// 	return {
-	// 		up,
-	// 		warning,
-	// 		errors
-	// 	};
-	// }
+	 	return {
+	 		up,
+	 		warning,
+	 		errors
+	 	};
+	}
 
 	return {
 		new_create_request,
@@ -192,7 +224,7 @@ export default function(config) {
 		get_create_request,
 		get_create_requests,
 		get_mint_requests_for_address,
-		get_mint_requests
-//		check_system_health,
+		get_mint_requests,
+		check_system_health,
 	}
 }
