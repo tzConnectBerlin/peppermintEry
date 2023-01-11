@@ -6,7 +6,7 @@ const { Pool } = require('pg');
 const REGISTER_PROCESS_SQL = "INSERT INTO peppermintery.processes (originator, process_uuid) VALUES ($1, $2) ON CONFLICT DO NOTHING";
 const UNREGISTER_PROCESS_SQL = "DELETE FROM peppermintery.processes WHERE originator=$1 AND process_uuid=$2";
 
-const UPDATE_LAST_PULL = "UPDATE peppermintery.processes SET messages = jsonb_set(messages, '{last_pull_at_epoch}', to_jsonb(extract(epoch from now()::timestamptz))) WHERE originator=$1 AND process_uuid=$2 RETURNING *";
+const UPDATE_LAST_PULL = "UPDATE peppermintery.processes SET messages = jsonb_set(messages, '{last_pull_at_epoch}', to_jsonb(extract(epoch from now()::timestamptz) * 1000)) WHERE originator=$1 AND process_uuid=$2 RETURNING *";
 const GET_LAST_PULL_MINTERY = "SELECT * FROM peppermintery.processes WHERE originator=$1";
 const GET_LAST_PULL_PEPPERMINT = "SELECT * FROM peppermint.processes WHERE originator=$1";
 
@@ -87,18 +87,14 @@ export default function(connection) {
 		return pool.query(UPDATE_LAST_PULL, [ originator, process_uuid ]);
 	}
 
-	const get_last_pull_peppermint = function ({ originator }) {
-		const result = pool.query(GET_LAST_PULL_PEPPERMINT, [ originator ]);
-		const row = first_or_null(result.rows);
-		const parsed_messages = JSON.parse(row.messages)
-		return parsed_messages.last_pull_at_epoch;
+	const get_last_pull_peppermint = async function ({ originator }) {
+		const result = await pool.query(GET_LAST_PULL_PEPPERMINT, [ originator ]);
+		return result.rows.length ? Math.round(result.rows[0].messages.last_pull_at_epoch) : null;
 	}
 
-	const get_last_pull_mintery = function ({ originator }) {
-		const result = pool.query(GET_LAST_PULL_MINTERY, [ originator ]);
-		const row = first_or_null(result.rows);
-		const parsed_messages = JSON.parse(row.messages)
-		return parsed_messages.last_pull_at_epoch;
+	const get_last_pull_mintery = async function ({ originator }) {
+		const result = await pool.query(GET_LAST_PULL_MINTERY, [ originator ]);
+		return result.rows.length ? Math.round(result.rows[0].messages.last_pull_at_epoch) : null;
 	}
 
 	const insert_create_request = async function({ token_id, token_details }, db = pool) {
