@@ -6,6 +6,9 @@ import Assets from './assets.mjs'
 import Pinata from '../tezos/pinata.mjs'
 import Peppermint from '../tezos/peppermint.mjs'
 
+import ProcMgr from './procmgr.mjs'
+import { asyncExitHook } from 'exit-hook'
+
 const config = ConfLoader();
 
 const db = Db(config.database);
@@ -15,6 +18,13 @@ const pinata = Pinata(config.pinata);
 const peppermint = Peppermint(config.chain, db);
 
 const main = async function() {
+
+	const { chain: { peppermint_originator: originator }, pollingDelay } = config;
+	const procmgr = ProcMgr({ db, originator, pollingDelay });
+
+	const update_last_pull = function() {
+		db.update_last_pull({ originator, process_uuid: procmgr.get_process_uuid() }).catch(() => { console.error("Database error when updating last pull epoch"); });
+	}
 
 	const heartbeat_a = async function() {
 		let tx = false;
@@ -149,10 +159,17 @@ const main = async function() {
 		return true;
 	}
 
+	asyncExitHook(() => {
+		console.log("Attempting clean exit...");
+		return procmgr.unregister();
+	}, { minimumWait: 1000 });
+
+	await procmgr.register();
 	let signal = true;
 	while (signal) {
 		try {
 			let [ result, _ ] = await Promise.all([
+				update_last_pull(),
 				heartbeat_a(),
 				heartbeat_b(),
 				new Promise(_ => setTimeout(_, config.polling_delay))

@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS peppermintery.recipients
 
 CREATE TABLE IF NOT EXISTS peppermintery.processes
 (
+    originator character(36),
     process_uuid character(36) NOT NULL,
     messages jsonb NOT NULL DEFAULT '{}',
     started_at timestamp with time zone NOT NULL DEFAULT now(),
