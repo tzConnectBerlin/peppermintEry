@@ -148,9 +148,10 @@ export default function(config) {
 			 }
 		 } = config;
 
-		let [ mintery_last_epoch, peppermint_last_epoch ] = await Promise.all([
+		let [ mintery_last_epoch, peppermint_last_epoch, peppermint_balance_warning ] = await Promise.all([
 			db.get_last_pull_mintery({ originator }),
-			db.get_last_pull_peppermint({ originator })
+			db.get_last_pull_peppermint({ originator }),
+			db.get_balance_warning_peppermint({ originator })
 		]);
 
 		// 	let [ mintery_canary, peppermint_canary, peppermint_stat_rows ] = await Promise.all([
@@ -160,6 +161,11 @@ export default function(config) {
 		// 			originator_address: config.chain.peppermint_originator,
 		// 			floor_id: config.monitoring.floor_peppermint_id
 		// 		}) ]);
+
+		if (peppermint_balance_warning) {
+			errors.push(peppermint_balance_warning);
+			warning = true;
+		}
 
 		let now = Date.now();
 		if (mintery_last_epoch) {

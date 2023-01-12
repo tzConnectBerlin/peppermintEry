@@ -6,9 +6,9 @@ const { Pool } = require('pg');
 const REGISTER_PROCESS_SQL = "INSERT INTO peppermintery.processes (originator, process_uuid) VALUES ($1, $2) ON CONFLICT DO NOTHING";
 const UNREGISTER_PROCESS_SQL = "DELETE FROM peppermintery.processes WHERE originator=$1 AND process_uuid=$2";
 
-const UPDATE_LAST_PULL = "UPDATE peppermintery.processes SET messages = jsonb_set(messages, '{last_pull_at_epoch}', to_jsonb(extract(epoch from now()::timestamptz) * 1000)) WHERE originator=$1 AND process_uuid=$2 RETURNING *";
-const GET_LAST_PULL_MINTERY = "SELECT * FROM peppermintery.processes WHERE originator=$1";
-const GET_LAST_PULL_PEPPERMINT = "SELECT * FROM peppermint.processes WHERE originator=$1";
+const UPDATE_LAST_PULL = "UPDATE peppermintery.processes SET messages = jsonb_set(messages, '{last_pull_at_epoch}', to_jsonb(ROUND(extract(epoch from now()::timestamptz) * 1000))) WHERE originator=$1 AND process_uuid=$2 RETURNING *";
+const GET_MINTERY_PROCESS_BY_ORIGINATOR = "SELECT * FROM peppermintery.processes WHERE originator=$1";
+const GET_PEPPERMINT_PROCESS_BY_ORIGINATOR = "SELECT * FROM peppermint.processes WHERE originator=$1";
 
 const INSERT_CREATE_REQUEST_SQL = "INSERT INTO peppermintery.requests(token_id, details) VALUES ($1, $2) RETURNING id";
 const INSERT_ASSET_SQL = "INSERT INTO peppermintery.assets(request_id, asset_role, mime_type, filename) VALUES ($1, $2, $3, $4) RETURNING id";
@@ -88,13 +88,18 @@ export default function(connection) {
 	}
 
 	const get_last_pull_peppermint = async function ({ originator }) {
-		const result = await pool.query(GET_LAST_PULL_PEPPERMINT, [ originator ]);
-		return result.rows.length ? Math.round(result.rows[0].messages.last_pull_at_epoch) : null;
+		const result = await pool.query(GET_PEPPERMINT_PROCESS_BY_ORIGINATOR, [ originator ]);
+		return first_or_null(result.rows)?.messages?.last_pull_at_epoch;
 	}
 
 	const get_last_pull_mintery = async function ({ originator }) {
-		const result = await pool.query(GET_LAST_PULL_MINTERY, [ originator ]);
-		return result.rows.length ? Math.round(result.rows[0].messages.last_pull_at_epoch) : null;
+		const result = await pool.query(GET_MINTERY_PROCESS_BY_ORIGINATOR, [ originator ]);
+		return first_or_null(result.rows)?.messages?.last_pull_at_epoch;
+	}
+
+	const get_balance_warning_peppermint = async function ({ originator }) {
+		const result = await pool.query(GET_PEPPERMINT_PROCESS_BY_ORIGINATOR, [ originator ]);
+		return first_or_null(result.rows)?.messages?.balance_warning;
 	}
 
 	const insert_create_request = async function({ token_id, token_details }, db = pool) {
@@ -228,6 +233,7 @@ export default function(connection) {
 		update_last_pull,
 		get_last_pull_peppermint,
 		get_last_pull_mintery,
+		get_balance_warning_peppermint,
 		insert_create_request,
 		insert_asset,
 		insert_mint_recipient,
