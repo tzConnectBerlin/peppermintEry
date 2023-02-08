@@ -67,7 +67,10 @@ export default function({ app, config }) {
 	app.get(
 		`${endpoint_root}/health`,
 		ash(async (req, res) => {
-			let response = {};
+			let response = await business.check_system_health();
+			if (response.warning) {
+				res = res.status(503);
+			}
 			res.json(response);
 		})
 	);

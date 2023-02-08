@@ -45,7 +45,8 @@
 		"canary_cycle": 60000,
 		"peppermint_canary_timeout": 120000,
 		"mintery_canary_timeout": 120000,
-		"floor_peppermint_id": 0
+		"floor_peppermint_id": 0,
+		"last_pull_timeout": 60000
 	},
 	"polling_delay": 10000
 }
